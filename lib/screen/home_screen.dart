@@ -54,6 +54,7 @@ class HomeScreen extends StatelessWidget {
               Navigator.of(context).push(
                 MultipleChildrenBlurDialogRoute(
                   barrierColor: Colors.black.withOpacity(0.2),
+                  offsetTop: details.globalPosition.dy,
                   children: [
                     SizedBox(
                       width: double.infinity,

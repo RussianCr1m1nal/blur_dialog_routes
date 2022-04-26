@@ -9,6 +9,7 @@ class MultipleChildrenBlurDialogRoute<T> extends PopupRoute<T> {
   final bool useSafeArea;
   final MainAxisAlignment verticalAlignment;
   final CrossAxisAlignment horizontalAlignment;
+  final double offsetTop;
 
   MultipleChildrenBlurDialogRoute({
     required this.children,
@@ -17,10 +18,11 @@ class MultipleChildrenBlurDialogRoute<T> extends PopupRoute<T> {
     this.useSafeArea = true,
     this.verticalAlignment = MainAxisAlignment.start,
     this.horizontalAlignment = CrossAxisAlignment.start,
+    this.offsetTop = 0.0,
     bool barrierDismissible = true,
     Color? barrierColor = const Color(0x80000000),
     String? barrierLabel,
-    Duration transitionDuration = const Duration(milliseconds: 200),
+    Duration transitionDuration = const Duration(milliseconds: 300),
     RouteSettings? settings,
   })  : _barrierColor = barrierColor,
         _barrierDismissible = barrierDismissible,
@@ -46,6 +48,26 @@ class MultipleChildrenBlurDialogRoute<T> extends PopupRoute<T> {
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+    final tweenOffset = Tween<Offset>(
+      begin: Offset(0, offsetTop),
+      end: const Offset(0, 0),
+    ).animate(
+      CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    final tweenOpacity = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeInCirc,
+      ),
+    );
+
     final child = Column(
       mainAxisAlignment: verticalAlignment,
       crossAxisAlignment: horizontalAlignment,
@@ -57,20 +79,11 @@ class MultipleChildrenBlurDialogRoute<T> extends PopupRoute<T> {
               child: entry.value,
               animation: animation,
               builder: (context, _child) {
-                return SlideTransition(
-                  child: _child,
-                  position: Tween<Offset>(
-                    begin: Offset(entry.key % 2 == 0 ? 1 : -1, 0),
-                    end: const Offset(0, 0),
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Interval(
-                        entry.key * (1 / children.length),
-                        entry.key * (1 / children.length) + 1 / children.length,
-                        curve: Curves.fastOutSlowIn,
-                      ),
-                    ),
+                return Transform.translate(
+                  offset: tweenOffset.value,
+                  child: Opacity(
+                    opacity: tweenOpacity.value,
+                    child: _child,
                   ),
                 );
               },
